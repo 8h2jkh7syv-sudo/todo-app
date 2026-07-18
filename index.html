@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List</title>
+  <!-- 見た目を設定するCSSファイルを読み込みます -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="todo-app">
+    <header class="app-header">
+      <h1>Todo List</h1>
+      <!-- JavaScriptで本日の日付を表示します -->
+      <p class="today"><time id="current-date"></time></p>
+    </header>
+
+    <!-- formにすることで、追加ボタンだけでなくEnterキーでも登録できます -->
+    <form id="todo-form" class="input-area">
+      <input
+        id="todo-input"
+        type="text"
+        placeholder="Todoを入力してください"
+        aria-label="Todoの内容"
+      >
+      <!-- 期限は入力しなくてもTodoを登録できます -->
+      <input
+        id="due-date-input"
+        type="date"
+        aria-label="Todoの期限"
+      >
+      <button type="submit" class="add-button">追加</button>
+    </form>
+
+    <!-- 未完了件数と完了件数をバッジ風に表示します -->
+    <div class="todo-counts" aria-live="polite">
+      <span class="count-badge">未完了 <strong id="total-count">0</strong>件</span>
+      <span class="count-badge completed-count-badge">完了 <strong id="completed-count">0</strong>件</span>
+    </div>
+
+    <!-- JavaScriptで、このリストの中にTodoを追加します -->
+    <ul id="todo-list" class="todo-list" aria-label="Todo一覧"></ul>
+  </main>
+
+  <!-- 画面の処理を行うJavaScriptファイルを読み込みます -->
+  <script src="script.js"></script>
+</body>
+</html>
