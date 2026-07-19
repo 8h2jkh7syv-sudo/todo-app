@@ -17,18 +17,22 @@
 
     <!-- formにすることで、追加ボタンだけでなくEnterキーでも登録できます -->
     <form id="todo-form" class="input-area">
-      <input
-        id="todo-input"
-        type="text"
-        placeholder="Todoを入力してください"
-        aria-label="Todoの内容"
-      >
+      <div class="input-field">
+        <input
+          id="todo-input"
+          type="text"
+          placeholder="Todoを入力してください"
+          aria-label="Todoの内容"
+        >
+      </div>
       <!-- 期限は入力しなくてもTodoを登録できます -->
-      <input
-        id="due-date-input"
-        type="date"
-        aria-label="Todoの期限"
-      >
+      <div class="input-field">
+        <input
+          id="due-date-input"
+          type="date"
+          aria-label="Todoの期限"
+        >
+      </div>
       <button type="submit" class="add-button">追加</button>
     </form>
 

@@ -3,6 +3,11 @@
   box-sizing: border-box;
 }
 
+input,
+button {
+  max-width: 100%;
+}
+
 body {
   margin: 0;
   padding: 56px 20px;
@@ -49,10 +54,18 @@ h1 {
 .input-area {
   display: flex;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 20px;
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 18px rgba(38, 50, 56, 0.08);
+}
+
+/* PCではラッパーをレイアウトに参加させず、従来の横並びを維持します。 */
+.input-field {
+  display: contents;
 }
 
 #todo-input,
@@ -393,14 +406,43 @@ button:focus-visible {
 
   /* スマートフォンでは入力部分を縦並びにします */
   .input-area {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     padding: 16px;
+  }
+
+  .input-field {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
   }
 
   #todo-input,
   #due-date-input,
   .add-button {
+    display: block;
+    flex: none;
+    min-width: 0;
     width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  /* iOS Safari/Braveの日付入力が持つ内在幅と高さによるはみ出しを防ぎます。 */
+  #due-date-input {
+    -webkit-appearance: none;
+    appearance: none;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    block-size: 46px;
+    height: 46px;
+    min-height: 46px;
+    padding: 0 12px;
+    font-size: 16px;
+    line-height: normal;
   }
 
   .todo-item {
