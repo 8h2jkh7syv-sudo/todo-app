@@ -431,7 +431,8 @@ button:focus-visible {
   }
 
   /* IDの固定幅より優先し、iOSの日付入力が持つ内在幅もリセットします。 */
-  input#due-date-input[type="date"] {
+  input#due-date-input[type="date"],
+  input.edit-date-input[type="date"] {
     display: block;
     width: 100%;
     max-width: 100%;
@@ -448,7 +449,13 @@ button:focus-visible {
     min-height: 46px;
     padding: 0 12px;
     font-size: 16px;
+    line-height: 46px;
+  }
+
+  input[type="date"]::-webkit-date-and-time-value {
+    min-height: 1.2em;
     line-height: normal;
+    text-align: left;
   }
 
   .todo-item {

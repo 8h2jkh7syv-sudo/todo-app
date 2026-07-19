@@ -11,6 +11,7 @@ const today = new Date();
 const todayDateString = getLocalDateString(today);
 let draggedTodoId = null;
 let editingTodoId = null;
+let pointerDrag = null;
 
 let todos = loadTodos();
 let dataWasMigrated = false;
@@ -258,6 +259,42 @@ function addDragEvents(handle, card, todo) {
 
   handle.addEventListener("dragend", finishDrag);
 
+  handle.addEventListener("pointerdown", function (event) {
+    if (event.pointerType === "mouse" || String(editingTodoId) === String(todo.id)) return;
+
+    event.preventDefault();
+    draggedTodoId = todo.id;
+    pointerDrag = {
+      pointerId: event.pointerId,
+      targetTodoId: todo.id,
+      insertAfter: false
+    };
+    handle.setPointerCapture(event.pointerId);
+    card.classList.add("dragging");
+    handle.classList.add("dragging-handle");
+  });
+
+  handle.addEventListener("pointermove", function (event) {
+    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+
+    const targetCard = document.elementFromPoint(event.clientX, event.clientY)?.closest(".todo-item");
+    if (!targetCard || targetCard === card || targetCard.dataset.completed !== String(todo.completed)) {
+      clearDragOver();
+      pointerDrag.targetTodoId = todo.id;
+      return;
+    }
+
+    const rect = targetCard.getBoundingClientRect();
+    pointerDrag.targetTodoId = targetCard.dataset.todoId;
+    pointerDrag.insertAfter = event.clientY >= rect.top + rect.height / 2;
+    clearDragOver();
+    targetCard.classList.add(pointerDrag.insertAfter ? "drag-over-after" : "drag-over-before");
+  });
+
+  handle.addEventListener("pointerup", finishPointerDrag);
+  handle.addEventListener("pointercancel", cancelPointerDrag);
+
   card.addEventListener("dragover", function (event) {
     const draggedTodo = getTodoById(draggedTodoId);
     if (!draggedTodo || draggedTodo.id === todo.id || draggedTodo.completed !== todo.completed) return;
@@ -295,6 +332,41 @@ function addDragEvents(handle, card, todo) {
     finishDrag();
     renderTodos();
   });
+}
+
+function finishPointerDrag(event) {
+  if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+
+  const draggedTodo = getTodoById(draggedTodoId);
+  const targetTodo = getTodoById(pointerDrag.targetTodoId);
+  if (draggedTodo && targetTodo && draggedTodo.id !== targetTodo.id && draggedTodo.completed === targetTodo.completed) {
+    reorderTodo(draggedTodo, targetTodo, pointerDrag.insertAfter);
+    saveTodos();
+  }
+
+  pointerDrag = null;
+  finishDrag();
+  renderTodos();
+}
+
+function cancelPointerDrag(event) {
+  if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+  pointerDrag = null;
+  finishDrag();
+}
+
+function reorderTodo(draggedTodo, targetTodo, insertAfter) {
+  const group = getSortedTodos().filter(function (item) { return item.completed === targetTodo.completed; });
+  const fromIndex = group.findIndex(function (item) { return item.id === draggedTodo.id; });
+  let toIndex = group.findIndex(function (item) { return item.id === targetTodo.id; });
+  if (fromIndex < 0 || toIndex < 0) return;
+
+  group.splice(fromIndex, 1);
+  if (fromIndex < toIndex) toIndex -= 1;
+  if (insertAfter) toIndex += 1;
+  group.splice(toIndex, 0, draggedTodo);
+  group.forEach(function (item, index) { item.order = index; });
+  normalizeOrders();
 }
 
 function finishDrag() {
