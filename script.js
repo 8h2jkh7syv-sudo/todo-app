@@ -12,6 +12,8 @@ const todayDateString = getLocalDateString(today);
 let draggedTodoId = null;
 let editingTodoId = null;
 let pointerDrag = null;
+let cardTouchDrag = null;
+let cardTouchTimer = null;
 
 let todos = loadTodos();
 let dataWasMigrated = false;
@@ -295,6 +297,63 @@ function addDragEvents(handle, card, todo) {
   handle.addEventListener("pointerup", finishPointerDrag);
   handle.addEventListener("pointercancel", cancelPointerDrag);
 
+  card.addEventListener("touchstart", function (event) {
+    if (event.touches.length !== 1 || String(editingTodoId) === String(todo.id)) return;
+    if (event.target.closest("button, input, form, label, a")) return;
+
+    const touch = event.changedTouches[0];
+    clearTimeout(cardTouchTimer);
+    cardTouchDrag = {
+      touchId: touch.identifier,
+      todoId: todo.id,
+      targetTodoId: todo.id,
+      insertAfter: false,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      active: false
+    };
+
+    cardTouchTimer = setTimeout(function () {
+      if (!cardTouchDrag || cardTouchDrag.touchId !== touch.identifier) return;
+      cardTouchDrag.active = true;
+      draggedTodoId = todo.id;
+      card.classList.add("dragging");
+      handle.classList.add("dragging-handle");
+    }, 350);
+  }, { passive: true });
+
+  card.addEventListener("touchmove", function (event) {
+    if (!cardTouchDrag || cardTouchDrag.todoId !== todo.id) return;
+    const touch = Array.from(event.changedTouches).find(function (item) {
+      return item.identifier === cardTouchDrag.touchId;
+    });
+    if (!touch) return;
+
+    if (!cardTouchDrag.active) {
+      const movedX = Math.abs(touch.clientX - cardTouchDrag.startX);
+      const movedY = Math.abs(touch.clientY - cardTouchDrag.startY);
+      if (movedX > 8 || movedY > 8) cancelCardTouchDrag();
+      return;
+    }
+
+    event.preventDefault();
+    const targetCard = document.elementFromPoint(touch.clientX, touch.clientY)?.closest(".todo-item");
+    if (!targetCard || targetCard === card || targetCard.dataset.completed !== String(todo.completed)) {
+      clearDragOver();
+      cardTouchDrag.targetTodoId = todo.id;
+      return;
+    }
+
+    const rect = targetCard.getBoundingClientRect();
+    cardTouchDrag.targetTodoId = targetCard.dataset.todoId;
+    cardTouchDrag.insertAfter = touch.clientY >= rect.top + rect.height / 2;
+    clearDragOver();
+    targetCard.classList.add(cardTouchDrag.insertAfter ? "drag-over-after" : "drag-over-before");
+  }, { passive: false });
+
+  card.addEventListener("touchend", finishCardTouchDrag, { passive: false });
+  card.addEventListener("touchcancel", cancelCardTouchDrag);
+
   card.addEventListener("dragover", function (event) {
     const draggedTodo = getTodoById(draggedTodoId);
     if (!draggedTodo || draggedTodo.id === todo.id || draggedTodo.completed !== todo.completed) return;
@@ -332,6 +391,32 @@ function addDragEvents(handle, card, todo) {
     finishDrag();
     renderTodos();
   });
+}
+
+function finishCardTouchDrag(event) {
+  clearTimeout(cardTouchTimer);
+  if (!cardTouchDrag) return;
+
+  const wasActive = cardTouchDrag.active;
+  if (wasActive) event.preventDefault();
+  const draggedTodo = getTodoById(cardTouchDrag.todoId);
+  const targetTodo = getTodoById(cardTouchDrag.targetTodoId);
+  if (wasActive && draggedTodo && targetTodo && draggedTodo.id !== targetTodo.id && draggedTodo.completed === targetTodo.completed) {
+    reorderTodo(draggedTodo, targetTodo, cardTouchDrag.insertAfter);
+    saveTodos();
+  }
+
+  cardTouchDrag = null;
+  cardTouchTimer = null;
+  finishDrag();
+  if (wasActive) renderTodos();
+}
+
+function cancelCardTouchDrag() {
+  clearTimeout(cardTouchTimer);
+  cardTouchTimer = null;
+  cardTouchDrag = null;
+  finishDrag();
 }
 
 function finishPointerDrag(event) {

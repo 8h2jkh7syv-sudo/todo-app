@@ -447,15 +447,34 @@ button:focus-visible {
     block-size: 46px;
     height: 46px;
     min-height: 46px;
-    padding: 0 12px;
+    padding: 0 44px 0 12px;
     font-size: 16px;
-    line-height: 46px;
+    line-height: normal;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236f7b83' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 20px 20px;
   }
 
   input[type="date"]::-webkit-date-and-time-value {
+    display: flex;
+    align-items: center;
+    height: 100%;
     min-height: 1.2em;
+    margin: 0;
+    padding: 0;
     line-height: normal;
     text-align: left;
+  }
+
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: normal;
   }
 
   .todo-item {
