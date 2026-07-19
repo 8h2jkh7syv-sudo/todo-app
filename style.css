@@ -430,8 +430,14 @@ button:focus-visible {
     margin: 0;
   }
 
-  /* iOS Safari/Braveの日付入力が持つ内在幅と高さによるはみ出しを防ぎます。 */
-  #due-date-input {
+  /* IDの固定幅より優先し、iOSの日付入力が持つ内在幅もリセットします。 */
+  input#due-date-input[type="date"] {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    margin: 0;
     -webkit-appearance: none;
     appearance: none;
     inline-size: 100%;
